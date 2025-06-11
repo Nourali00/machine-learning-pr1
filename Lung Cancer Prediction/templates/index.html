@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lung Cancer Prediction | v2.0</title>
+    <style>
+        /* --- Google Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+        /* --- CSS Variables (New Theme) --- */
+        :root {
+            --primary-glow: #00d9ff;
+            --background-deep-space: #0d1117;
+            --container-slate: #161b22;
+            --border-color: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #7d8590;
+            --success-glow: #39ff14;
+            --danger-glow: #ff00f0;
+            --font-heading: 'Orbitron', sans-serif;
+            --font-body: 'Roboto Mono', monospace;
+        }
+
+        /* --- General Styling --- */
+        body {
+            font-family: var(--font-body);
+            background-color: var(--background-deep-space);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Main Container --- */
+        .main-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--container-slate);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* Slightly rounded for a softer tech look */
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.1), 0 0 50px rgba(0, 217, 255, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header Title --- */
+        .header-panel {
+            text-align: center;
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(145deg, #161b22, #1a2029);
+        }
+
+        .header-panel h1 {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .lung-icon {
+            font-size: 1.8rem;
+            color: var(--primary-glow);
+        }
+
+        /* --- Result Panel (Top Section) --- */
+        .result-panel {
+            padding: 2rem;
+            text-align: center;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.5s ease;
+            background: rgba(255, 255, 255, 0.05); /* Frosted glass effect */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        #prediction-text {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            margin: 0.25rem 0;
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+
+        #probability-display {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .initial-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Result Specific Styles */
+        .result-low-risk #prediction-text {
+            color: var(--success-glow);
+            text-shadow: 0 0 15px var(--success-glow);
+        }
+        .result-high-risk #prediction-text {
+            color: var(--danger-glow);
+            text-shadow: 0 0 15px var(--danger-glow);
+        }
+        .result-error #prediction-text {
+            color: #ffcc00; /* Yellow for error */
+            text-shadow: 0 0 15px #ffcc00;
+        }
+        
+        /* --- Form Panel (Bottom Section) --- */
+        .form-panel {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            background-color: var(--background-deep-space);
+            border: 1px solid var(--border-color);
+            border-radius: 4px; /* Sharp edges */
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+        }
+        
+        .form-actions {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        #predict-btn {
+            background-image: linear-gradient(45deg, var(--primary-glow) 0%, #0077b6 100%);
+            color: var(--background-deep-space);
+            font-family: var(--font-heading);
+            border: none;
+            border-radius: 4px;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            text-transform: uppercase;
+        }
+
+        #predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 217, 255, 0.2);
+        }
+        
+        #predict-btn:disabled {
+            background-image: none;
+            background-color: var(--border-color);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header class="header-panel">
+            <h1><span class="lung-icon">🫁</span>SYSTEM DIAGNOSTICS</h1>
+        </header>
+
+        <section class="result-panel">
+            <div id="prediction-result">
+                <p class="initial-text">Awaiting transmission...</p>
+            </div>
+        </section>
+        
+        <section class="form-panel">
+            <form id="prediction-form" class="form-grid">
+                
+                <div class="form-group">
+                    <label for="AGE">Age</label>
+                    <input type="number" id="AGE" name="AGE" value="65" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="GENDER">Gender</label>
+                    <select id="GENDER" name="GENDER" required>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="SMOKING">Smoking</label>
+                    <select id="SMOKING" name="SMOKING" required>
+                        <option value="2">Active</option>
+                        <option value="1">Inactive</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ANXIETY">Anxiety</label>
+                    <select id="ANXIETY" name="ANXIETY" required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="FATIGUE">Fatigue</label>
+                    <select id="FATIGUE" name="FATIGUE " required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ALLERGY">Allergy</label>
+                    <select id="ALLERGY" name="ALLERGY " required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ALCOHOL_CONSUMING">Alcohol Use</label>
+                    <select id="ALCOHOL_CONSUMING" name="ALCOHOL CONSUMING" required>
+                        <option value="2">Active</option>
+                        <option value="1">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="SHORTNESS_OF_BREATH">Dyspnea</label>
+                    <select id="SHORTNESS_OF_BREATH" name="SHORTNESS OF BREATH" required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="SWALLOWING_DIFFICULTY">Dysphagia</label>
+                    <select id="SWALLOWING_DIFFICULTY" name="SWALLOWING DIFFICULTY" required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="CHEST_PAIN">Chest Pain</label>
+                    <select id="CHEST_PAIN" name="CHEST PAIN" required>
+                        <option value="2">Detected</option>
+                        <option value="1">Normal</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="predict-btn">Analyze</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const resultDiv = document.getElementById('prediction-result');
+        const predictBtn = document.getElementById('predict-btn');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Analyzing...';
+            resultDiv.innerHTML = '<p class="initial-text">Processing data stream...</p>';
+            resultDiv.className = '';
+
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = Number(value);
+            }
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `System Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayResult(result);
+
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = 'Analyze';
+            }
+        });
+        
+        function displayResult(result) {
+            const isHighRisk = result.prediction === 1;
+            const cancerProb = (result.probability.cancer * 100).toFixed(1);
+            
+            resultDiv.innerHTML = '';
+            resultDiv.className = isHighRisk ? 'result-high-risk' : 'result-low-risk';
+
+            const resultText = document.createElement('p');
+            resultText.id = 'prediction-text';
+            resultText.textContent = result.prediction_text;
+            
+            const probabilityText = document.createElement('p');
+            probabilityText.id = 'probability-display';
+            probabilityText.textContent = `Confidence: ${cancerProb}%`;
+
+            resultDiv.appendChild(resultText);
+            resultDiv.appendChild(probabilityText);
+        }
+
+        function displayError(errorMessage) {
+            resultDiv.innerHTML = '';
+            resultDiv.className = 'result-error'; 
+            
+            const errorText = document.createElement('p');
+            errorText.id = 'prediction-text';
+            errorText.textContent = 'Anomaly Detected';
+            
+            const errorDetails = document.createElement('p');
+            errorDetails.id = 'probability-display';
+            errorDetails.textContent = errorMessage;
+
+            resultDiv.appendChild(errorText);
+            resultDiv.appendChild(errorDetails);
+        }
+    </script>
+
+</body>
+</html>
